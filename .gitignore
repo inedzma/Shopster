@@ -16,3 +16,24 @@
 .pub/
 
 app.*.symbols
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+cmake-build-*/
+
+# Android related
+**/android/app/src/main/res/values/strings.xml
+**/android/local.properties
+**/android/key.properties
+**/android/app/*.jks
+**/android/app/*.keystore
+**/android/app/*.pub
+**/android/app/google-services.json
+
+# iOS related
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Runner/GeneratedPluginRegistrant.[mh]
