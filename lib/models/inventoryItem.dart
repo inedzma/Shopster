@@ -1,7 +1,7 @@
 import 'package:mobile_apps/models/product.dart';
 
 class InventoryItem{
-  final int id;
+  final String id;
   final Product product;
   final double currentQuantity;
   final DateTime lastUpdated;

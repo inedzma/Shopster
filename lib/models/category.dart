@@ -1,5 +1,5 @@
 class Category{
-  final int id;
+  final String id;
   final String name;
 
   Category({required this.name, required this.id});
@@ -11,9 +11,9 @@ class Category{
     };
   }
 
-  factory Category.fromMap(Map<String, dynamic> map) {
+  factory Category.fromMap(Map<String, dynamic> map, String docId) {
     return Category(
-      id: map['id'],
+      id: docId,
       name: map['name'],
     );
   }

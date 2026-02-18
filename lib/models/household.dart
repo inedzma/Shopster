@@ -1,5 +1,5 @@
 class Household {
-  final int id;
+  final String id;
   final String name;
   final String inviteCode; // npr. "DOM-123"
 
@@ -14,11 +14,11 @@ class Household {
     };
   }
 
-  factory Household.fromMap(Map<String, dynamic> map){
+  factory Household.fromMap(Map<String, dynamic> map) {
     return Household(
-      id: map['id'],
-      name: map['name'],
-      inviteCode: map['invite_code']
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      inviteCode: map['invite_code'] ?? '',
     );
   }
 }

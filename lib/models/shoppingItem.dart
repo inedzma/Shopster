@@ -1,10 +1,10 @@
 import 'package:mobile_apps/models/product.dart';
 
 class ShoppingItem{
-  final int id;
+  final String id;
   final Product product;
   final double quantity;
-  final bool isBought;
+  final bool? isBought;
 
   ShoppingItem({required this.id, required this.product, required this.quantity, required this.isBought});
 
@@ -17,12 +17,12 @@ class ShoppingItem{
     };
   }
 
-  factory ShoppingItem.fromMap(Map<String, dynamic> map, Product product){
+  factory ShoppingItem.fromMap(Map<String, dynamic> map, Product product, String docId){
     return ShoppingItem(
-        id: map['id'],
+        id: docId,
         product: product,
-        quantity: map['quantity'],
-        isBought: map['is_bought']
+        quantity: (map['quantity'] as num).toDouble(),
+        isBought: map['is_bought'] ?? false,
     );
   }
 }

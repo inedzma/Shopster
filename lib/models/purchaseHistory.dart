@@ -1,13 +1,15 @@
+import 'package:mobile_apps/models/product.dart';
+
 class PurchaseHistory {
-  final int id;
-  final int productId;
+  final String id;
+  final Product product;
   final double quantity;
   final double price;
   final DateTime date;
 
   PurchaseHistory({
     required this.id,
-    required this.productId,
+    required this.product,
     required this.quantity,
     required this.price,
     required this.date,
@@ -16,17 +18,17 @@ class PurchaseHistory {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'product_id': productId,
+      'product_id': product.id,
       'quantity': quantity,
       'price': price,
       'date': date.toIso8601String(), // Spremanje datuma kao String
     };
   }
 
-  factory PurchaseHistory.fromMap(Map<String, dynamic> map) {
+  factory PurchaseHistory.fromMap(Map<String, dynamic> map, Product product) {
     return PurchaseHistory(
       id: map['id'],
-      productId: map['product_id'],
+      product: product,
       quantity: map['quantity'].toDouble(),
       price: map['price'].toDouble(),
       date: DateTime.parse(map['date']),

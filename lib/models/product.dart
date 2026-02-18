@@ -3,7 +3,7 @@ import 'package:mobile_apps/models/unit.dart';
 import 'category.dart';
 
 class Product {
-  final int id;
+  final String id;
   final String name;
   final Category category;
   final Unit unit;

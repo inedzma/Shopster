@@ -1,7 +1,7 @@
 import 'package:mobile_apps/models/product.dart';
 
 class ShoppingList{
-  final int id;
+  final String id;
   final String name;
   final DateTime createdAt;
   final List<Product> products;

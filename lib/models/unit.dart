@@ -1,5 +1,5 @@
 class Unit{
-  final int id;
+  final String id;
   final String name;
 
   Unit({required this.id, required this.name});
@@ -11,9 +11,9 @@ class Unit{
     };
   }
 
-  factory Unit.fromMap(Map<String, dynamic> map) {
+  factory Unit.fromMap(Map<String, dynamic> map, String docId) {
     return Unit(
-      id: map['id'],
+      id: docId,
       name: map['name'],
     );
   }
