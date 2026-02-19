@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_apps/screens/homepage_screen.dart';
+import 'package:mobile_apps/screens/inventory_screen.dart';
 import 'package:mobile_apps/screens/shopping_list_screen.dart';
 
 class MainLayout extends StatelessWidget {
@@ -74,11 +75,19 @@ class MainLayout extends StatelessWidget {
                         body: ShoppingListScreen(),
                         activeIndex: 1,
                     )));
+                  } else if(index==2){
+                    Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const MainLayout(
+                            body: InventoryScreen(),
+                            activeIndex: 2,
+                        )));
                   }
                 },
                 items: const [
                   BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Početna'),
                   BottomNavigationBarItem(icon: Icon(Icons.shopping_basket), label: 'Lista'),
+                  BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Inventar'),
                 ],
               ),
             );

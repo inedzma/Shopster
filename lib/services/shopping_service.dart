@@ -107,4 +107,34 @@ class ShoppingService {
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
+
+  Future<void> processCompletedPurchase(String householdId, List<Map<String, dynamic>> itemstoBuy) async {
+    WriteBatch batch = _db.batch();
+
+    for (var item in itemstoBuy) {
+      String itemId = item['id'];
+
+      DocumentReference itemRef = _db
+          .collection('households')
+          .doc(householdId)
+          .collection('shopping_lists')
+          .doc('main_list')
+          .collection('items')
+          .doc(itemId);
+
+      batch.delete(itemRef);
+
+      DocumentReference invRef = _db.collection('inventory').doc();
+
+      batch.set(invRef, {
+        'id': invRef.id,
+        'household_id': householdId,
+        'product_id': item['product_id'],
+        'current_quantity': item['quantity'],
+        'last_updated': DateTime.now().toIso8601String(),
+      });
+
+    }
+    await batch.commit();
+  }
 }

@@ -109,6 +109,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               Expanded(
                 child: _buildAutocompleteField(
                   label: "Jedinica (kg, kom...)",
+                  controller: _unitController,
                   stream: _masterService.getUnits().map((list) => list.map((u) => u.name).toList()),
                   onSelected: (val) => selectedUnit = val,
                 ),
@@ -118,6 +119,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               Expanded(
                 child: _buildAutocompleteField(
                   label: "Kategorija",
+                  controller: _categoryController,
                   stream: _masterService.getCategories().map((list) => list.map((c) => c.name).toList()),
                   onSelected: (val) => selectedCategory = val,
                 ),
@@ -126,19 +128,26 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 icon: const Icon(Icons.add_circle, color: Colors.blue, size: 40),
                 onPressed: () async {
                   if (selectedProduct.isNotEmpty) {
+
+                    String finalUnit = selectedUnit.isEmpty ? _unitController.text : selectedUnit;
+                    String finalCategory = selectedCategory.isEmpty ? _categoryController.text : selectedCategory;
+
                     await _shoppingService.quickAddToList(
                       householdId: householdId,
                       productName: selectedProduct,
                       quantity: double.tryParse(_qtyController.text) ?? 1.0,
-                      unit: selectedUnit,
-                      category: selectedCategory,
+                      unit: finalUnit,
+                      category: finalCategory,
                     );
                     setState(() {
                       selectedProduct = "";
+                      selectedCategory = "";
+                      selectedUnit = "";
+                      _unitController.clear();
+                      _categoryController.clear();
+                      _qtyController.text = "1";
                     });
-                    _qtyController.text = "1";
                     FocusScope.of(context).unfocus();
-                    // Resetuj autocomplete polja (opcionalno)
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Unesite naziv artikla"),)
@@ -153,8 +162,12 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     );
   }
 
-  // POMOĆNI WIDGET ZA AUTOCOMPLETE
-  Widget _buildAutocompleteField({required String label, required Stream<List<String>> stream, required Function(String) onSelected}) {
+  Widget _buildAutocompleteField({
+    required String label,
+    required Stream<List<String>> stream,
+    required Function(String) onSelected,
+    required TextEditingController controller, // Dodajemo kontroler kao obavezan
+  }) {
     return StreamBuilder<List<String>>(
       stream: stream,
       builder: (context, snapshot) {
@@ -162,15 +175,25 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         return Autocomplete<String>(
           optionsBuilder: (TextEditingValue textEditingValue) {
             if (textEditingValue.text == '') return options;
-            return options.where((String option) => option.contains(textEditingValue.text.toLowerCase()));
+            return options.where((String option) =>
+                option.toLowerCase().contains(textEditingValue.text.toLowerCase()));
           },
           onSelected: onSelected,
-          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+          fieldViewBuilder: (context, fieldController, focusNode, onFieldSubmitted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (controller.text != fieldController.text && controller.text.isNotEmpty) {
+                fieldController.text = controller.text;
+              }
+            });
+
             return TextField(
-              controller: controller,
+              controller: fieldController,
               focusNode: focusNode,
-              onChanged: onSelected, // Da bi radilo i ako korisnik samo kuca a ne klikne na ponuđeno
               decoration: InputDecoration(labelText: label),
+              onChanged: (val) {
+                controller.text = val;
+                onSelected(val);
+              },
             );
           },
         );
@@ -191,8 +214,14 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         var docs = snapshot.data!.docs;
-        return ListView.builder(
+
+        var boughtItems = docs.where((d) => d['is_bought'] == true).toList();
+
+        return Stack(
+        children: [
+          ListView.builder(
           itemCount: docs.length,
+          padding: const EdgeInsets.only(bottom: 80),
           itemBuilder: (context, index) {
             var data = docs[index].data() as Map<String, dynamic>;
             return ListTile(
@@ -204,8 +233,53 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               ),
             );
           },
-        );
+        ),
+
+          if(boughtItems.isNotEmpty)
+            Positioned(
+                bottom: 20,
+                left: 20,
+                right: 20,
+                child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                    ),
+                    icon: const Icon(Icons.shopping_cart_checkout),
+                    onPressed: () => _showCompleteDialog(householdId, boughtItems),
+                    label: Text("Završi kupovinu (${boughtItems.length}"),))
+        ]);
       },
     );
+  }
+
+  void _showCompleteDialog(String householdId, List<QueryDocumentSnapshot> boughtItems){
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Kupovina završena?"),
+          content: Text("Ovi proizvodi će biti prebačeni u vaš inventar (stanje u kući)."),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context), child: const Text("Otkaži")),
+            ElevatedButton(
+                onPressed: () async {
+                  List<Map<String, dynamic>> itemsData = boughtItems.map((d) {
+                    var data = d.data() as Map<String,dynamic>;
+                    data['id'] = d.id;
+                    return data;
+                  }).toList();
+
+                  await _shoppingService.processCompletedPurchase(householdId, itemsData);
+                  Navigator.pop(context);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Artikli prebačeni u inventar")),
+                  );
+                },
+                child: const Text("Potvrdi")),
+          ],
+        ));
   }
 }
